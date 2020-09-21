@@ -6,7 +6,7 @@ And the [biggest ski-resort in Sweden](https://en.wikipedia.org/wiki/%C3%85re).
 
 ### Featuring: :film_projector:
 
-* SKI-conversion via bracket abstraction (basic algorithm from Combinatory Logic by Curry and Feys)
+* SKI-conversion via bracket abstraction (basic algorithm from *Combinatory Logic* by Curry and Feys)
 * SECD-like stack machine, but simplified for SKI
 
 ### Possible Future Experiments 🧪
