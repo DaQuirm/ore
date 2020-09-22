@@ -6,7 +6,7 @@ const CLS_ID_TABLE = {
     2: 'S'
 }
 
-fs.readFile('./test.wasm')
+fs.readFile('./stack-machine.wasm')
     .then(buffer => WebAssembly.instantiate(buffer, { env: { log: console.log } }))
     .then(result => {
         const workingMemoryOffset = result.instance.exports.WM_ADDR.value;
