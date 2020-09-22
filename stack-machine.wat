@@ -11,6 +11,7 @@
     ;; exports
     (export "mem" (memory $mem))
     (export "WM_ADDR" (global $WM_ADDR))
+    (export "stack_top_pointer" (global $stack_top_pointer))
     (export "main" (func $main))
 
     ;; closure encoding tags
@@ -219,7 +220,6 @@
 
         (loop $EVAL_LOOP
             (local.set $cmd (i32.load8_u (local.get $cmd_addr)))
-            (call $log (local.get $cmd))
             (if (i32.eq (local.get $cmd) (i32.const 0)) ;; cmd = I
                 ;; push the I cmd_id
                 (then (call $stack_push (global.get $CLS_ID_I)))

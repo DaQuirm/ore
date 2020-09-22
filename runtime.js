@@ -10,10 +10,13 @@ fs.readFile('./stack-machine.wasm')
     .then(buffer => WebAssembly.instantiate(buffer, { env: { log: console.log } }))
     .then(result => {
         const workingMemoryOffset = result.instance.exports.WM_ADDR.value;
-        const programMem = new Uint8Array(result.instance.exports.mem.buffer, 0, workingMemoryOffset - 1);
-        const stackMem = new Uint8Array(result.instance.exports.mem.buffer, workingMemoryOffset, 1024);
-        const heapMem = new Uint8Array(result.instance.exports.mem.buffer, workingMemoryOffset + 1024, 13*20);
-        console.log(`Program Memory: ${programMem}`);
+        console.log(`Working Memory address: ${workingMemoryOffset}`);
+        const programMem = new Uint8Array(result.instance.exports.mem.buffer, 0, workingMemoryOffset);
+        const stackTopPointer = result.instance.exports.stack_top_pointer.value;
+        console.log(`Stack Top pointer: ${stackTopPointer}`);
+        const stackMem = new Uint8Array(result.instance.exports.mem.buffer, workingMemoryOffset, stackTopPointer - workingMemoryOffset);
+        const heapMem = new Uint8Array(result.instance.exports.mem.buffer, workingMemoryOffset + 1024, 13 * 20);
+        console.log(`Program Memory: ${programMem}\n`);
 
         const stackClss = [];
 
@@ -23,7 +26,7 @@ fs.readFile('./stack-machine.wasm')
             stackClss.push(clsId);
         }
 
-        console.log(`Stack:\n ${stackClss.map(id => CLS_ID_TABLE[id])}`);
+        console.log(`Stack:\n  ${stackClss.map((id, index) => `#${index} ${CLS_ID_TABLE[id]}`)}\n`);
 
         const heapClss = [];
 
@@ -33,18 +36,18 @@ fs.readFile('./stack-machine.wasm')
             const tag = buffer.readUIntLE(4, 1);
             const data1 = buffer.readUIntLE(5, 4)
             const data2 = buffer.readUIntLE(9, 4)
-            heapClss.push({clsId, tag, data1, data2});
+            heapClss.push({ clsId, tag, data1, data2 });
         }
 
         console.log('Heap:');
         for (const heapCls of heapClss) {
-            console.log(formatHeapCLS(heapCls))
+            console.log(`  ${formatHeapCLS(heapCls)}`)
         }
     });
 
 
 function formatHeapCLS({ clsId, tag, data1, data2 }) {
-    function formatCLS () {
+    function formatCLS() {
         switch (tag) {
             case 0:
                 return `I`
