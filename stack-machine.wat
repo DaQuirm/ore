@@ -1,12 +1,11 @@
 (module
     ;; imports
     (import "env" "log" (func $log (param i32)))
+    (import "env" "mem" (memory $mem 1))
+    (import "env" "programSize" (global $PROGRAM_SIZE i32))
 
     ;; types
     (type $tmain (func))
-
-    (memory $mem 1) ;; 1 64Kb page
-    (data (i32.const 0) "\00\00\00\01\01\03\02\03\03\03\03") ;; 11 bytes
 
     ;; exports
     (export "mem" (memory $mem))
@@ -32,8 +31,8 @@
     (global $STACK_SIZE i32 (i32.const 1024)) ;; command stack size in bytes
     (global $STACK_FRAME_SIZE i32 (i32.const 4)) ;; command stack frame size in bytes
 
-    (global $WM_ADDR i32 (i32.const 11)) ;; working memory address
-    (global $CLS_HEAP_ADDR i32 (i32.const 1035)) ;; current closure heap address (initialized with $WM_ADDR + $STACK_SIZE)
+    (global $WM_ADDR (mut i32) (i32.const 0)) ;; working memory address, initialized based on the $PROGRAM_SIZE
+    (global $CLS_HEAP_ADDR (mut i32) (i32.const 0)) ;; current closure heap address (initialized with $WM_ADDR + $STACK_SIZE)
 
     (global $stack_top_pointer (mut i32) (i32.const 0)) ;; current stack top pointer (initialized with $wm_offset)
     (global $cls_heap_offset (mut i32) (i32.const 0)) ;; current closure heap offset (initialized with $wm_offset + $STACK_SIZE)
@@ -208,6 +207,16 @@
         (local $cmd i32)
 
         (local.set $cmd_addr (i32.const 0))
+
+        ;; init memory layout
+        (;
+            |-- Program Memory --| $PROGRAM_SIZE bytes
+            |--  Stack Memory  --| $STACK_SIZE bytes
+            |--   Heap Memory  --| No fixed size
+        ;)
+
+        (global.set $WM_ADDR (global.get $PROGRAM_SIZE))
+        (global.set $CLS_HEAP_ADDR (i32.add (global.get $WM_ADDR) (global.get $STACK_SIZE)))
 
         ;; init memory pointers
         (global.set $stack_top_pointer (global.get $WM_ADDR))
