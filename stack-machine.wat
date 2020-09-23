@@ -9,8 +9,16 @@
 
     ;; exports
     (export "mem" (memory $mem))
+
     (export "WM_ADDR" (global $WM_ADDR))
+    (export "STACK_SIZE" (global $STACK_SIZE))
+    (export "STACK_FRAME_SIZE" (global $STACK_FRAME_SIZE))
+    (export "CLS_SIZE" (global $CLS_SIZE))
+    (export "CLS_HEAP_ADDR" (global $CLS_HEAP_ADDR))
+
     (export "stack_top_pointer" (global $stack_top_pointer))
+    (export "cls_heap_pointer" (global $cls_heap_pointer))
+
     (export "main" (func $main))
 
     ;; closure encoding tags
@@ -35,23 +43,23 @@
     (global $CLS_HEAP_ADDR (mut i32) (i32.const 0)) ;; current closure heap address (initialized with $WM_ADDR + $STACK_SIZE)
 
     (global $stack_top_pointer (mut i32) (i32.const 0)) ;; current stack top pointer (initialized with $wm_offset)
-    (global $cls_heap_offset (mut i32) (i32.const 0)) ;; current closure heap offset (initialized with $wm_offset + $STACK_SIZE)
+    (global $cls_heap_pointer (mut i32) (i32.const 0)) ;; current closure heap offset (initialized with $wm_offset + $STACK_SIZE)
     (global $cls_id (mut i32) (i32.const 0)) ;; next closure id
 
     (func $write_cls (param $tag i32) (param $data i32)
         ;; TODO: speed-up with shifts
         (local $offset i32)
-        (local.set $offset (global.get $cls_heap_offset))
+        (local.set $offset (global.get $cls_heap_pointer))
         (i32.store (local.get $offset) (global.get $cls_id)) ;; cls_id
         (global.set $cls_id (i32.add (global.get $cls_id) (i32.const 1))) ;; inc cls_id
         (i32.store8 (i32.add (local.get $offset) (i32.const 4)) (local.get $tag)) ;; tag
         (i32.store (i32.add (local.get $offset) (i32.const 5)) (local.get $data)) ;; data
-        (global.set $cls_heap_offset (i32.add (local.get $offset) (global.get $CLS_SIZE)))
+        (global.set $cls_heap_pointer (i32.add (local.get $offset) (global.get $CLS_SIZE)))
     )
 
     (func $write_cls_ext (param $tag i32) (param $data1 i32) (param $data2 i32)
         (local $offset i32)
-        (local.set $offset (global.get $cls_heap_offset))
+        (local.set $offset (global.get $cls_heap_pointer))
         (call $write_cls (local.get $tag) (local.get $data1))
         (i32.store (i32.add (local.get $offset) (i32.const 9)) (local.get $data2)) ;; data2
     )
@@ -220,7 +228,7 @@
 
         ;; init memory pointers
         (global.set $stack_top_pointer (global.get $WM_ADDR))
-        (global.set $cls_heap_offset (i32.add (global.get $WM_ADDR) (global.get $STACK_SIZE)))
+        (global.set $cls_heap_pointer (i32.add (global.get $WM_ADDR) (global.get $STACK_SIZE)))
 
         ;; init closure heap
         (call $write_cls (global.get $CLS_I) (i32.const 0))
