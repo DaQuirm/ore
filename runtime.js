@@ -34,7 +34,7 @@ Promise.all([
             console.log(`Heap pointer: ${clsHeapPointer}, ${closureMemoryTotal / CLS_SIZE} closures ⨉ ${CLS_SIZE} bytes`);
 
             const heapMem = new Uint8Array(result.instance.exports.mem.buffer, workingMemoryOffset + STACK_SIZE, closureMemoryTotal);
-            console.log(`Program Memory: ${programMem}\n`);
+            console.log(`Program Memory: ${([...programMem]).map(command => ['I', 'K', 'S', 'A'][command])}\n`);
 
             const stackClss = [];
 
